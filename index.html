@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>비율·배점 계산기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', -apple-system, sans-serif;
+    font-size: 14px;
+    color: #202124;
+    background: #f0f2f5;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 16px 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .header-inner {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .header-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #34a853, #137333);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .header h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+  .header .sub { font-size: 11px; color: #80868b; font-weight: 400; }
+
+  /* ===== MAIN ===== */
+  .main {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px 20px 40px;
+  }
+
+  /* ===== CARD ===== */
+  .card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 14px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  .card-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #5f6368;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 14px 16px 0;
+  }
+
+  .card-body { padding: 12px 16px 14px; }
+
+  /* ===== 전체 비율 ===== */
+  .total-row {
+    display: grid;
+    grid-template-columns: 1fr 28px 1fr;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .total-box { text-align: center; }
+
+  .total-box .lb {
+    font-size: 11px;
+    color: #5f6368;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .total-box input {
+    width: 100%;
+    padding: 10px 4px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 28px;
+    font-weight: 800;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  .total-box input:focus { border-color: #1a73e8; }
+  .total-box.w input { color: #137333; }
+  .total-box.p input { color: #b06000; }
+
+  .total-plus {
+    text-align: center;
+    font-size: 18px;
+    color: #bdc1c6;
+    padding-top: 18px;
+    font-weight: 300;
+  }
+
+  .bar {
+    display: flex;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    background: #e8eaed;
+  }
+
+  .bar .bw { background: #34a853; transition: width 0.3s ease; }
+  .bar .bp { background: #ea8600; transition: width 0.3s ease; }
+
+  .bar-lb {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #80868b;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  .chk {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 8px;
+    border-radius: 6px;
+    margin-top: 8px;
+    transition: all 0.2s;
+  }
+
+  .chk.ok { background: #e6f4ea; color: #137333; }
+  .chk.err { background: #fce8e6; color: #c5221f; }
+
+  /* ===== 차수 배분 ===== */
+  .split-row {
+    display: grid;
+    grid-template-columns: 32px 1fr 20px 32px 1fr;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .split-lb {
+    font-size: 13px;
+    font-weight: 700;
+    color: #5f6368;
+    text-align: center;
+  }
+
+  .split-in {
+    width: 100%;
+    padding: 10px 6px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: 800;
+    text-align: center;
+    outline: none;
+    color: #137333;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: border-color 0.2s;
+  }
+
+  .split-in:focus { border-color: #1a73e8; }
+
+  /* ===== EXAM ===== */
+  .exam-head {
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f1f3f4;
+    background: #fafbfc;
+  }
+
+  .exam-head h3 {
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-weight: 800;
+  }
+
+  .b1 { background: #e8f0fe; color: #1967d2; }
+  .b2 { background: #fce8e6; color: #c5221f; }
+
+  .exam-pct {
+    font-family: 'Noto Sans KR', monospace;
+    font-size: 18px;
+    font-weight: 800;
+    color: #137333;
+  }
+
+  .exam-body { padding: 14px 16px; }
+
+  .perfect-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #f1f3f4;
+  }
+
+  .perfect-row .lb { font-size: 13px; color: #5f6368; font-weight: 600; }
+
+  .u-wrap { position: relative; }
+
+  .u-wrap input {
+    width: 72px;
+    padding: 7px 24px 7px 8px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    text-align: right;
+    outline: none;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  .u-wrap input:focus { border-color: #1a73e8; }
+
+  .u-wrap .u {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: #80868b;
+    pointer-events: none;
+  }
+
+  /* ===== CALC GRID ===== */
+  .calc-grid {
+    display: grid;
+    grid-template-columns: 72px 1fr 1fr;
+    border: 1.5px solid #e8eaed;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .cg-header {
+    background: #f1f3f4;
+    padding: 7px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #5f6368;
+    text-align: center;
+    border-bottom: 1.5px solid #e8eaed;
+  }
+
+  .cg-label {
+    background: #fafbfc;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #5f6368;
+    display: flex;
+    align-items: center;
+    border-right: 1.5px solid #e8eaed;
+  }
+
+  .cg-cell {
+    padding: 4px;
+    display: flex;
+    align-items: center;
+  }
+
+  .cg-cell + .cg-cell { border-left: 1px solid #f1f3f4; }
+
+  .cg-cell input {
+    width: 100%;
+    padding: 10px 22px 10px 6px;
+    border: 1.5px solid transparent;
+    border-radius: 7px;
+    font-size: 18px;
+    font-weight: 700;
+    text-align: right;
+    outline: none;
+    background: transparent;
+    color: #202124;
+    transition: all 0.15s;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  .cg-cell input:hover {
+    background: #f8f9fa;
+    border-color: #e0e0e0;
+  }
+
+  .cg-cell input:focus {
+    background: #fff;
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+  }
+
+  .cg-cell input.auto { color: #137333; }
+
+  .cg-cell .u {
+    font-size: 12px;
+    color: #80868b;
+    margin-left: -18px;
+    pointer-events: none;
+    width: 16px;
+    flex-shrink: 0;
+  }
+
+  .calc-grid > :nth-child(n+7) { border-top: 1px solid #f1f3f4; }
+
+  .hint {
+    font-size: 10px;
+    color: #9aa0a6;
+    text-align: center;
+    padding: 8px 0 2px;
+  }
+
+  .hint em { color: #1a73e8; font-style: normal; font-weight: 700; }
+
+  /* ===== RESULT ===== */
+  .res-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .res-card {
+    padding: 12px 14px;
+    border-radius: 10px;
+    text-align: center;
+  }
+
+  .res-card .rl { font-size: 10px; font-weight: 600; margin-bottom: 2px; }
+
+  .res-card .rv {
+    font-size: 24px;
+    font-weight: 800;
+    font-family: 'Noto Sans KR', monospace;
+  }
+
+  .rw { background: #e6f4ea; }
+  .rw .rl, .rw .rv { color: #137333; }
+  .rp { background: #fef7e0; }
+  .rp .rl, .rp .rv { color: #b06000; }
+  .re { background: #f3e8fd; grid-column: 1 / -1; }
+  .re .rl, .re .rv { color: #7627bb; }
+
+  .help {
+    font-size: 11px;
+    color: #9aa0a6;
+    line-height: 1.6;
+    padding: 8px 0 0;
+    text-align: center;
+  }
+
+  /* ===== MOBILE ===== */
+  @media (max-width: 520px) {
+    .main { padding: 12px 12px 32px; }
+    .total-box input { font-size: 24px; }
+    .split-in { font-size: 18px; }
+    .cg-cell input { font-size: 16px; }
+    .res-card .rv { font-size: 20px; }
+  }
+
+  /* remove number input arrows */
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type=number] { -moz-appearance: textfield; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-icon">%</div>
+    <div>
+      <h1>비율·배점 계산기</h1>
+      <div class="sub">지필평가 비율 및 배점 자동 계산</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- 전체 비율 -->
+  <div class="card">
+    <div class="card-body">
+      <div class="total-row">
+        <div class="total-box w">
+          <div class="lb">지필평가</div>
+          <input type="number" id="wPct" value="60" min="0" max="100" oninput="onW()">
+        </div>
+        <div class="total-plus">+</div>
+        <div class="total-box p">
+          <div class="lb">수행평가</div>
+          <input type="number" id="pPct" value="40" min="0" max="100" oninput="onP()">
+        </div>
+      </div>
+      <div class="bar"><div class="bw" id="bw" style="width:60%"></div><div class="bp" id="bp" style="width:40%"></div></div>
+      <div class="bar-lb"><span>지필 <b id="bwl">60</b>%</span><span>수행 <b id="bpl">40</b>%</span></div>
+      <div class="chk ok" id="chk1">✓ 합계 100%</div>
+    </div>
+  </div>
+
+  <!-- 차수 배분 -->
+  <div class="card">
+    <div class="card-title">지필 차수별 배분</div>
+    <div class="card-body">
+      <div class="split-row">
+        <div class="split-lb">1차</div>
+        <input type="number" class="split-in" id="s1" value="30" step="0.5" oninput="onS1()">
+        <div style="text-align:center;color:#bdc1c6;font-size:14px;">+</div>
+        <div class="split-lb">2차</div>
+        <input type="number" class="split-in" id="s2" value="30" step="0.5" oninput="onS2()">
+      </div>
+      <div class="chk ok" id="chk2" style="margin-top:8px;">✓ 지필 60% 일치</div>
+    </div>
+  </div>
+
+  <!-- 1차 -->
+  <div class="card">
+    <div class="exam-head">
+      <h3><span class="badge b1">1차</span> 지필평가</h3>
+      <span class="exam-pct" id="r1">30%</span>
+    </div>
+    <div class="exam-body">
+      <div class="perfect-row">
+        <span class="lb">만점</span>
+        <div class="u-wrap"><input type="number" id="p1" value="100" min="1" oninput="onPerfect(1)"><span class="u">점</span></div>
+      </div>
+      <div class="calc-grid">
+        <div class="cg-header"></div>
+        <div class="cg-header">배점</div>
+        <div class="cg-header">비율</div>
+        <div class="cg-label">선택형</div>
+        <div class="cg-cell"><input type="number" id="e1ms" value="80" min="0" oninput="onScore(1,'m')"><span class="u">점</span></div>
+        <div class="cg-cell"><input type="number" id="e1mr" step="0.01" class="auto" oninput="onRatio(1,'m')"><span class="u">%</span></div>
+        <div class="cg-label">서·논술</div>
+        <div class="cg-cell"><input type="number" id="e1es" value="20" min="0" oninput="onScore(1,'e')"><span class="u">점</span></div>
+        <div class="cg-cell"><input type="number" id="e1er" step="0.01" class="auto" oninput="onRatio(1,'e')"><span class="u">%</span></div>
+      </div>
+      <div class="hint">배점 변경 → <em>나머지 배점·비율 자동</em></div>
+    </div>
+  </div>
+
+  <!-- 2차 -->
+  <div class="card">
+    <div class="exam-head">
+      <h3><span class="badge b2">2차</span> 지필평가</h3>
+      <span class="exam-pct" id="r2">30%</span>
+    </div>
+    <div class="exam-body">
+      <div class="perfect-row">
+        <span class="lb">만점</span>
+        <div class="u-wrap"><input type="number" id="p2" value="100" min="1" oninput="onPerfect(2)"><span class="u">점</span></div>
+      </div>
+      <div class="calc-grid">
+        <div class="cg-header"></div>
+        <div class="cg-header">배점</div>
+        <div class="cg-header">비율</div>
+        <div class="cg-label">선택형</div>
+        <div class="cg-cell"><input type="number" id="e2ms" value="80" min="0" oninput="onScore(2,'m')"><span class="u">점</span></div>
+        <div class="cg-cell"><input type="number" id="e2mr" step="0.01" class="auto" oninput="onRatio(2,'m')"><span class="u">%</span></div>
+        <div class="cg-label">서·논술</div>
+        <div class="cg-cell"><input type="number" id="e2es" value="20" min="0" oninput="onScore(2,'e')"><span class="u">점</span></div>
+        <div class="cg-cell"><input type="number" id="e2er" step="0.01" class="auto" oninput="onRatio(2,'e')"><span class="u">%</span></div>
+      </div>
+      <div class="hint">배점 변경 → <em>나머지 배점·비율 자동</em></div>
+    </div>
+  </div>
+
+  <!-- 결과 -->
+  <div class="card">
+    <div class="card-title">계산 결과</div>
+    <div class="card-body">
+      <div class="res-grid">
+        <div class="res-card rw"><div class="rl">지필 비율</div><div class="rv" id="RW">60%</div></div>
+        <div class="res-card rp"><div class="rl">수행 비율</div><div class="rv" id="RP">40%</div></div>
+        <div class="res-card re"><div class="rl">지필 서·논술형 비율 합계</div><div class="rv" id="RE">12%</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="help">지필 비율 → 차수 배분 → 배점 또는 비율 입력</div>
+
+</div>
+
+<script>
+var $=id=>document.getElementById(id),
+    V=id=>parseFloat($(id).value)||0,
+    Rd=(v,d=2)=>Math.round(v*10**d)/10**d;
+
+function onW(){
+  $('pPct').value=Math.max(0,100-V('wPct'));
+  autoSplitEven();
+  upAll();
+}
+
+function onP(){
+  $('wPct').value=Math.max(0,100-V('pPct'));
+  autoSplitEven();
+  upAll();
+}
+
+function autoSplitEven(){
+  var w=V('wPct');
+  $('s1').value=Rd(w/2,1);
+  $('s2').value=Rd(w/2,1);
+}
+
+function onS1(){
+  $('s2').value=Math.max(0,Rd(V('wPct')-V('s1'),1));
+  upSplit(); calcBoth(1); calcBoth(2); upSum();
+}
+
+function onS2(){
+  $('s1').value=Math.max(0,Rd(V('wPct')-V('s2'),1));
+  upSplit(); calcBoth(1); calcBoth(2); upSum();
+}
+
+function upSplit(){
+  var w=V('wPct'),s=Rd(V('s1')+V('s2'));
+  var c=$('chk2');
+  if(s===w){c.className='chk ok';c.textContent='✓ 지필 '+w+'% 일치'}
+  else{c.className='chk err';c.textContent='✗ 1차+2차 = '+s+'% (지필 '+w+'%)'}
+  $('r1').textContent=V('s1')+'%';
+  $('r2').textContent=V('s2')+'%';
+}
+
+function onPerfect(n){
+  var pf=V('p'+n),ms=V('e'+n+'ms');
+  $('e'+n+'es').value=Math.max(0,Rd(pf-ms,1));
+  calcBoth(n); upSum();
+}
+
+function onScore(n,t){
+  var pf=V('p'+n),o=t==='m'?'e':'m';
+  $('e'+n+o+'s').value=Math.max(0,Rd(pf-V('e'+n+t+'s'),1));
+  calcBoth(n); upSum();
+}
+
+function onRatio(n,t){
+  var pf=V('p'+n),ep=V('s'+n);
+  if(ep<=0||pf<=0)return;
+  var o=t==='m'?'e':'m';
+  var thisR=V('e'+n+t+'r');
+  var otherR=Math.max(0,Rd(ep-thisR));
+  $('e'+n+o+'r').value=otherR;
+  $('e'+n+t+'s').value=Rd(thisR/ep*pf,1);
+  $('e'+n+o+'s').value=Rd(otherR/ep*pf,1);
+  upSum();
+}
+
+function calcBoth(n){
+  var pf=V('p'+n),ep=V('s'+n);
+  if(pf<=0)return;
+  $('e'+n+'mr').value=Rd(V('e'+n+'ms')/pf*ep);
+  $('e'+n+'er').value=Rd(V('e'+n+'es')/pf*ep);
+}
+
+function upAll(){
+  var w=V('wPct'),p=V('pPct'),t=w+p;
+  $('bw').style.width=w+'%';$('bp').style.width=p+'%';
+  $('bwl').textContent=w;$('bpl').textContent=p;
+  var c=$('chk1');
+  if(t===100){c.className='chk ok';c.textContent='✓ 합계 100%'}
+  else{c.className='chk err';c.textContent='✗ 합계 '+t+'%'}
+  upSplit();calcBoth(1);calcBoth(2);upSum();
+}
+
+function upSum(){
+  $('RW').textContent=V('wPct')+'%';
+  $('RP').textContent=V('pPct')+'%';
+  $('RE').textContent=Rd(V('e1er')+V('e2er'))+'%';
+}
+
+upAll();
+</script>
+</body>
+</html>
